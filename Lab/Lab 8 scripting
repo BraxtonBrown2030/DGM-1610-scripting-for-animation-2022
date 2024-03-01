@@ -1,0 +1,79 @@
+import maya.cmds as cmds
+
+def create_nurbs_curve(name, position):
+    # Create a NURBS curve
+    curve = cmds.circle(center=(0, 0, 0), normal=(0, 1, 0), radius=1, degree=3, sections=8, constructionHistory=1)[0]
+    # Rename the curve
+    curve = cmds.rename(curve, name)
+    # Move the curve to the specified position
+    cmds.move(position[0], position[1], position[2], curve, absolute=True)
+    return curve
+
+def create_empty_group(name, position):
+    # Create an empty group
+    group = cmds.group(empty=True, name=name)
+    # Move the group to the specified position
+    cmds.move(position[0], position[1], position[2], group, absolute=True)
+    return group
+
+def parent_control_under_group(control, group):
+    # Parent the control under the group
+    cmds.parent(control, group)
+
+def rename_objects(control, group, joint_name):
+    # Rename the control and parent group
+    control_name = joint_name + '_control'
+    group_name = joint_name + '_grp'
+    control = cmds.rename(control, control_name)
+    group = cmds.rename(group, group_name)
+
+def create_parent_constraint(parent, child):
+    # Create a parent constraint between parent and child
+    constraint = cmds.parentConstraint(parent, child)[0]
+    return constraint
+
+def create_scale_constraint(parent, child):
+    # Create a scale constraint between parent and child
+    constraint = cmds.scaleConstraint(parent, child)[0]
+    return constraint
+
+def main():
+    # Get selected joints
+    selected_joints = cmds.ls(selection=True, type='joint')
+
+    # Check if there are selected joints
+    if not selected_joints:
+        print("No joints selected!")
+        return
+
+    # Iterate over selected joints
+    for joint in selected_joints:
+        # Get joint position
+        joint_position = cmds.xform(joint, query=True, translation=True, worldSpace=True)
+
+        # Create a NURBS curve (control) at the joint's position
+        curve = create_nurbs_curve(joint + '_curve', joint_position)
+
+        # Create an empty group (parent group) at the joint's position
+        group = create_empty_group(joint + '_grp', joint_position)
+
+        # Parent the control under the group
+        parent_control_under_group(curve, group)
+
+        # Create parent constraint between joint and group
+        parent_constraint = create_parent_constraint(joint, group)
+
+        # Create scale constraint between joint and group
+        scale_constraint = create_scale_constraint(joint, group)
+
+        # Rename the control and parent group
+        rename_objects(curve, group, joint)
+
+        # Rotate the parent group by 90 degrees on Z-axis
+        cmds.rotate(0, 0, 90, curve, relative=True, objectSpace=True)
+
+        print("Created control, parent group, parent constraint, and scale constraint for joint:", joint)
+
+
+# Call the main function
+main()
