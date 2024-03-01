@@ -7,6 +7,7 @@ def create_nurbs_curve(name, position):
     curve = cmds.rename(curve, name)
     # Move the curve to the specified position
     cmds.move(position[0], position[1], position[2], curve, absolute=True)
+    cmds.rotate(0, 0, 90, curve, relative=True, objectSpace=True)
     return curve
 
 def create_empty_group(name, position):
@@ -68,9 +69,6 @@ def main():
 
         # Rename the control and parent group
         rename_objects(curve, group, joint)
-
-        # Rotate the parent group by 90 degrees on Z-axis
-        cmds.rotate(0, 0, 90, curve, relative=True, objectSpace=True)
 
         print("Created control, parent group, parent constraint, and scale constraint for joint:", joint)
 
